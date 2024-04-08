@@ -6,7 +6,7 @@ from watchdog.events import FileSystemEventHandler
 
 run_create_folders = False
 
-src_dir = r'C:\Users\z5011\Downloads'
+src_dir = r'C:\Users\<your username>\Downloads'
 dest_dir = r'C:\Downloaded Files'
 
 dest_zip = r"C:\Downloaded Files\Zip"
