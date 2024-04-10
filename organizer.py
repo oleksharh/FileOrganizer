@@ -4,12 +4,15 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-run_create_folders = False
+run_create_folders = False # Flag if create_files function had already been executed in the script at least once
 
-src_dir = r'C:\Users\<your username>\Downloads'
-dest_dir = r'C:\Downloaded Files'
+src_dir = r'C:\Users\<your username on windows>\Downloads' # Change to your source directory
+dest_dir = r'C:\Downloaded Files' # Change to your Destination directory
 
-# | Destination directories, rename them as you wish to match your needs |
+
+# DESTINATION FOLDERS AND EXTENSIONS FOR THEM
+#_______________________________________________________________________________________________________________________
+# | Destination directories, rename them as you wish to match your needs |                                             
 dest_zip = r"C:\Downloaded Files\Zip"
 dest_documents = r"C:\Downloaded Files\Documents"
 dest_music = r"C:\Downloaded Files\Music"
@@ -32,11 +35,15 @@ applications = ['exe', 'dmg', 'apk', 'app', 'deb', 'rpm', 'msi', 'bin', 'jar', '
 
 # | Names of the folders that will be created |
 folders = ["Zip", "Documents", "Music", "Gallery", "Codes", "3D", "Applications", "Other"]
+#____________________________________________________________________________________________________________________
+
+
+
 
 
 # | One time function to create              |
 # | the folders in the destination directory |
-def create_folders():
+def create_folders(dest_dir):
     # | Creates path in the destination directory |
     # | so it then can be used to move files into |
     for folder_name in folders:
@@ -54,7 +61,14 @@ def create_folders():
         else:
             os.makedirs(folder_path, exist_ok=True)
 
-def move_files():
+
+
+
+
+
+# | Function that is executed on the        |
+# | event of modifying the source directory |
+def move_files(src_dir):
 
     file_types = {
         "documents": documents,
@@ -87,17 +101,34 @@ def move_files():
 
             destination_path = os.path.join(destination, file)
 
-            if not os.path.exists(destination_path):
-                try:
-                    file_size = os.path.getsize(file_path)  # Get file size in bytes
-                    wait_time = file_size / (1024 * 1024 * 10)  # Coverts bytes to MB and divides by 10 MB/s in order to get the wait time in seconds
-                    time.sleep(wait_time)  # Wait based on file size
+            try:
+                if not file_extension == 'part':
+                    if os.path.exists(destination_path):
 
-                    shutil.move(file_path, destination_path)
-                except PermissionError:
-                    pass
-                except FileNotFoundError:
-                    pass
+                        file_name_parts = file.split('.')[:-1]  
+                        file_name_to_change = '.'.join(file_name_parts) + '-Copy'  
+                        file_name_final = file_name_to_change + '.' + file_extension  
+                        destination_path = os.path.join(destination, file_name_final) 
+                        # | 4 lines above change name of a file by adding                      |
+                        # | -Copy suffixs so it can be then moved to the destination directory |
+
+
+                        shutil.move(file_path, destination_path)
+                    else:
+                        shutil.move(file_path, destination_path)
+                else:
+                    time.sleep(1)
+                    move_files(src_dir)
+            except PermissionError:
+                time.sleep(1)
+                move_files(src_dir)
+            except FileNotFoundError:
+                time.sleep(1)
+                move_files(src_dir)
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -105,12 +136,12 @@ if __name__ == "__main__":
     event_handler = FileSystemEventHandler()
 
     if not run_create_folders:
-        create_folders()
+        create_folders(dest_dir)
         run_create_folders = True
         print("Folders have been created")
 
-    def on_modified(event): # event is the event that triggered the function
-        move_files()
+    def on_modified(event):
+        move_files(src_dir)
 
     event_handler.on_modified = on_modified 
 
@@ -127,6 +158,9 @@ if __name__ == "__main__":
     observer.join()
 
 
-###  pyinstaller --onefile --noconsole organizer.py  ###
 
 
+######################################################## Script to create it as executable,
+###  pyinstaller --onefile --noconsole organizer.py  ### but before running it, make sure
+######################################################## that you have pyinstaller module installed
+                                                        
